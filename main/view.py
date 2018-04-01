@@ -3,7 +3,7 @@ from flask import jsonify
 from .Connection.redis_conn import Redis
 from .Celery.tasks_queue import *
 from . import app
-
+from .Model.Image import Image
 
 @app.route('/')
 def hello_world():
@@ -16,7 +16,9 @@ def flask_rsync():
     result=[]
     for i in list:
         task=rsync.apply_async(args=[i])
-        result.append(task.id)
+        image=Image(i,task.state)
+        image.exit_code=task.result
+        result.append(image.convert_to_dict())
     return jsonify(result)
 
 @app.route('/queue')
@@ -27,12 +29,7 @@ def get_queue():
     for key in keys:
         value=Redis.get(conn,key)
         b=json.loads(bytes.decode(value))
-        result=b["result"]
-        state={
-            "task_id":result["task_id"],
-            "name":result["name"]
-        }
-        queue.append(state)
+        queue.append(b)
     return jsonify(queue)
 
 @app.route('/task')
@@ -44,5 +41,5 @@ def get_task():
 
 
 @app.route('/status')
-def task_status(task_id):
-    return task_id
+def task_status():
+    return 1

@@ -4,7 +4,6 @@ class Task:
         self.task_name=task_name
         self.starttime=starttime
         self.endtime=""
-        self.status=""
         self.hosthome=hostname
 
     def convert_to_dict(self):
@@ -13,6 +12,6 @@ class Task:
             "task_name":self.task_name,
             "start_time":self.starttime,
             "end_time":self.endtime,
-            "hostname":self.hosthome
+            "hostname":self.hosthome,
         }
         return result

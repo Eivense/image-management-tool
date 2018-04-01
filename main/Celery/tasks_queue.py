@@ -10,7 +10,7 @@ from .. import celery
 def rsync(self,name):
     task_id=self.request.id
     starttime=time.strftime("%a %b %d %H:%M:%S %Y", time.localtime())
-    task= Task(task_id, name, starttime, self.request.hostname)
+    task=Task(task_id, name, starttime, self.request.hostname)
     connection=MongoDB.connect()
     MongoDB.insert(connection,task.convert_to_dict())
     rsync=os.system('/home/eivense/sync_script/rsync.sh '+name)
