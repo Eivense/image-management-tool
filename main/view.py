@@ -3,7 +3,8 @@ from flask import jsonify
 from .Connection.redis_conn import Redis
 from .Celery.tasks_queue import *
 from . import app
-from .Model.Image import Image
+from .Util import JsonUtil
+
 
 @app.route('/')
 def hello_world():
@@ -15,10 +16,9 @@ def flask_rsync():
     list=['elvish','inna','putty','vim']
     result=[]
     for i in list:
-        task=rsync.apply_async(args=[i])
-        image=Image(i,task.state)
-        image.exit_code=task.result
-        result.append(image.convert_to_dict())
+        image=JsonUtil.read_json_toObject(i)
+        task=rsync.apply_async(args=[image])
+        result.append(image)
     return jsonify(result)
 
 @app.route('/queue')
