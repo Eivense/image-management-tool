@@ -7,10 +7,11 @@ from .. import celery
 from ..Util import JsonUtil
 
 @celery.task(name='rsync',bind=True)
-def rsync(self,image):
+def rsync(self,name):
     task_id=self.request.id
+    image=JsonUtil.read_json_toObject(name)
+    print(type(image))
     starttime=time.strftime("%a %b %d %H:%M:%S %Y", time.localtime())
-    name=image.name
     image.status="Syncing"
     JsonUtil.save_object(image.tojson())
     task=Task(task_id, name, starttime, self.request.hostname)
