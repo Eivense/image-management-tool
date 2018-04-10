@@ -1,9 +1,9 @@
 class Task:
-    def __init__(self,task_name,task_id,status,starttime,hostname):
+    def __init__(self,task_name,task_id,hostname,status=None,starttime=None):
         self.task_name=task_name
         self.task_id=task_id
-        self.status=status
-        self.starttime=starttime
+        self.status=""
+        self.starttime=""
         self.endtime=""
         self.hosthome=hostname
         self.exitcode_message=""
@@ -16,6 +16,6 @@ class Task:
             "start_time":self.starttime,
             "end_time":self.endtime,
             "hostname":self.hosthome,
-            "exitcode_message":self.exitcode_message
+            "message":self.exitcode_message
         }
         return result

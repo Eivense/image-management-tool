@@ -1,7 +1,6 @@
 import threading
 
 from celery.apps.multi import Cluster,Node
-
 class Workers:
     __instance_lock=threading.Lock()
     cluster=None
@@ -17,7 +16,7 @@ class Workers:
 
     def __init__(self,nums):
         for i in range(1, nums + 1):
-            node = Node(name="worker" + str(i) + "@eivense")
+            node = Node(name="worker" + str(i) + "@eivense",append="-A pj.main.celery")
             self.nodelist.append(node)
         cluster = Cluster(self.nodelist)
         self.cluster=cluster

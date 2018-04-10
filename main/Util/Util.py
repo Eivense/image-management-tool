@@ -1,19 +1,33 @@
 import json
+import fcntl
+
+
 
 def save_json_tofile(data,path):
     with open(path,'w',encoding='utf-8') as json_file:
+        fcntl.flock(json_file,fcntl.LOCK_EX)
         json.dump(data,json_file,ensure_ascii=False)
+        fcntl.flock(json_file,fcntl.LOCK_UN)
 
 def save_object(task,path):
+    name = task.task_name
+    task=task.convert_to_dict()
     with open(path,"r",encoding='utf-8') as json_file:
+        fcntl.flock(json_file,fcntl.LOCK_EX)
         images=json.load(json_file)
-        name=task.task_name
-        images[name]=task.convert_to_dict()
+        images[name]=task
+        fcntl.flock(json_file, fcntl.LOCK_UN)
         save_json_tofile(images,path)
+
+
+
+
 
 def read_json(path):
     with open(path,'r',encoding='utf-8') as json_file:
+        fcntl.flock(json_file,fcntl.LOCK_EX)
         result=json.load(json_file)
+        fcntl.flock(json_file, fcntl.LOCK_UN)
         return result
 
 

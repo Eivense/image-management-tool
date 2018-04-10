@@ -14,7 +14,7 @@ CELERYD_FORCE_EXECV=True
 CELERY_SEND_EVENTS=True
 
 #并发数量
-CELERYD_CONCURRENCY = 5
+CELERYD_CONCURRENCY = 2
 #每个worker最大任务执行数
 CELERYD_MAX_TASKS_PER_CHILD = 100
 #任务预取数  从消息队列中取得的任务数  小任务 应该设置的大一点
