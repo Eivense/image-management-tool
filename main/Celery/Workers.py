@@ -36,7 +36,6 @@ class Workers:
     def stopAll(self):
         self.cluster.stop()
 
-
     def findworker(self,name):
         worker=self.cluster.find(name)
         return worker.alive()

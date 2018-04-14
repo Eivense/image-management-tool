@@ -1,5 +1,5 @@
 import json
-from flask import jsonify
+from flask import jsonify,make_response
 from . import app
 from .Celery.celery_tasks import rsync
 from .Connection.redis_conn import Redis
@@ -36,7 +36,11 @@ def get_queue():
 @app.route('/task_status')
 def get_task():
     json=Util.read_json(json_path)
-    return jsonify(json)
+    response = make_response(jsonify(json))
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'POST'
+    response.headers['Access-Control-Allow-Headers'] = 'x-requested-with,content-type'
+    return response
 
 
 @app.route('/kill')

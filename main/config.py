@@ -20,7 +20,7 @@ CELERYD_MAX_TASKS_PER_CHILD = 100
 #任务预取数  从消息队列中取得的任务数  小任务 应该设置的大一点
 CELERYD_PREFETCH_MULTIPLIER = 100
 
-json_path='/home/eivense/code/pj/Images.json'
+json_path='/home/eivense/code/pj/main/Data/mirrors.json'
 
 rsync_path='/home/eivense/sync_script/rsync.sh'
 

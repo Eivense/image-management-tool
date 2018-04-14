@@ -1,10 +1,11 @@
 from __future__ import absolute_import
 import time
-import json
 from pj.main.Util import Util
 from pj.main import celery
 from pj.main.config import json_path
-def monitor(celery):
+
+
+def monitor():
     state = celery.events.State()
     def task_received(event):
         state.event(event)
@@ -38,6 +39,7 @@ def monitor(celery):
         result=Util.read_json(json_path)
         result[task_name]["end_time"] = succeeded_time
         result[task_name]["status"]=task.state
+        result[task_name]["message"]=Util.rsync_exitcode(int(task.result))
         Util.save_json_tofile(result,json_path)
 
     def task_failed(event):
@@ -49,18 +51,18 @@ def monitor(celery):
         failed_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(task.failed))
         result=Util.read_json(json_path)
         result[task_name]["end_time"] = failed_time
-        result[task_name]["status"]=task.state
-        result[task_name]["message"]
+        result[task_name]["status"]="CELERY"+task.state
+        result[task_name]["message"]=task.traceback
         Util.save_json_tofile(result,json_path)
 
     with celery.connection() as connection:
         recv = celery.events.Receiver(connection, handlers={
-            'task-received': task_received,
-            'task-started': task_started,
-            'task-succeeded':task_succeeded,
+            # 'task-received': task_received,
+            # 'task-started': task_started,
+            # 'task-succeeded':task_succeeded,
             'task-failed':task_failed,
         })
         recv.capture(limit=None, timeout=None, wakeup=True)
 
 
-monitor(celery)
+monitor()

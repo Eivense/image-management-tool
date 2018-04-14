@@ -9,9 +9,7 @@ def save_json_tofile(data,path):
         json.dump(data,json_file,ensure_ascii=False)
         fcntl.flock(json_file,fcntl.LOCK_UN)
 
-def save_object(task,path):
-    name = task.task_name
-    task=task.convert_to_dict()
+def save_object(task,name,path):
     with open(path,"r",encoding='utf-8') as json_file:
         fcntl.flock(json_file,fcntl.LOCK_EX)
         images=json.load(json_file)
@@ -44,7 +42,7 @@ def rsync_exitcode(code):
         6:"Daemon unable to append to log - file",
         10:"Error in socket I / O",
         11:"Error in file I / O",
-        12:"Error in rsync protocol data stream",
+        12:"Error in rsync protocol Data stream",
         13:"Errors with program diagnostics",
         14:"Error in IPC code",
         20:"Received SIGUSR1 or SIGINT",
@@ -53,6 +51,6 @@ def rsync_exitcode(code):
         23:"Partial transfer due to error",
         24:"Partial transfer due to vanished source files",
         25:"The --max-delete limit stopped deletions",
-        30:"Timeout in data send / receive",
+        30:"Timeout in Data send / receive",
         35:"Timeout waiting for daemon connection"
     }.get(code)
