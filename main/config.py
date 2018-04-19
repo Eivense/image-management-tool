@@ -1,3 +1,5 @@
+from kombu import Exchange, Queue
+from pj.main.Celery.Schedule import initSchedule
 
 BROKER_URL='amqp://localhost'
 
@@ -20,11 +22,24 @@ CELERYD_MAX_TASKS_PER_CHILD = 100
 #任务预取数  从消息队列中取得的任务数  小任务 应该设置的大一点
 CELERYD_PREFETCH_MULTIPLIER = 100
 
-json_path='/home/eivense/code/pj/main/Data/mirrors.json'
+mirror_path= '/home/eivense/code/pj/main/Data/mirrors.json'
+schedule_path= '/home/eivense/code/pj/main/Data/schedule.json'
 
 rsync_path='/home/eivense/sync_script/rsync.sh'
 
 
-Workers={
-
+# CELERYBEAT_SCHEDULE = {
+#     'add-every-30-seconds': {
+#         'task': 'rsync',
+#         'schedule': crontab(hour=8, minute=50, day_of_week=3),
+#         'args':["elvish"],
+#         'options':{'routing_key':'small','queue':'small'}
+#     },
+# }
+CELERYBEAT_SCHEDULE=initSchedule(schedule_path,mirror_path)
+CELERY_QUEUES={
+    Queue('small',routing_key='small'),
+    Queue('middle',routing_key='middle'),
+    Queue('large',routing_key='large')
 }
+

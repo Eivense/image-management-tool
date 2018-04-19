@@ -1,7 +1,7 @@
 import os
 import time
 
-from ..config import json_path,rsync_path
+from ..config import mirror_path,rsync_path
 from .. import celery
 from ..Util import Util
 from ..Celery import BaseTask
@@ -11,7 +11,7 @@ def rsync(self,name):
     task_id=self.request.id
     hostname=self.request.hostname
     start_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-    mirrors=Util.read_json(json_path)
+    mirrors=Util.read_json(mirror_path)
     if("end_time" in mirrors[name]):
         last_succeed=mirrors[name]["end_time"]
     else:
@@ -25,7 +25,7 @@ def rsync(self,name):
         "end_time":"",
         "message":"",
     }
-    Util.save_object(task,name,json_path)
+    Util.save_object(task,name,mirror_path)
     time.sleep(30)
     rsync=os.system(rsync_path+" "+name)
     end_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
@@ -38,5 +38,5 @@ def rsync(self,name):
     task["last_succeed"]=last_succeed
     task["status"]=status
     task["message"]=Util.rsync_exitcode(rsync>>8)
-    Util.save_object(task,name,json_path)
+    Util.save_object(task,name,mirror_path)
     return rsync>>8

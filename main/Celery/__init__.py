@@ -2,7 +2,7 @@ from celery import Celery
 from ..Celery.Events import MyEvent
 import celery
 from ..Util.Util import *
-from ..config import json_path
+from ..config import mirror_path
 def make_celery(app):
     celery = Celery(app.import_name)
     celery.conf.update(app.config)
@@ -31,7 +31,7 @@ class BaseTask(celery.Task):
         super(BaseTask, self).on_retry(exc, task_id, args, kwargs, einfo)
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
-        mirrors=read_json(json_path)
+        mirrors=read_json(mirror_path)
         task_name = args
         task_name = task_name[2:]
         task_name = task_name[:-2]

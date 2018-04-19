@@ -1,5 +1,5 @@
 import threading
-
+from celery.apps.worker import Worker
 from celery.apps.multi import Cluster,Node
 class Workers:
     __instance_lock=threading.Lock()
@@ -15,9 +15,14 @@ class Workers:
         return Workers._instance
 
     def __init__(self,nums):
-        for i in range(1, nums + 1):
-            node = Node(name="worker" + str(i) + "@eivense",append="-A pj.main.celery")
-            self.nodelist.append(node)
+
+        node1 = Node(name="worker1@eivense",append="-A pj.main.celery -Q small",extra_args="-B")
+        node2 = Node(name="worker2@eivense", append="-A pj.main.celery -Q middle")
+        node3 = Node(name="worker3@eivense", append="-A pj.main.celery -Q large -c 1")
+        node4 = Node(name="worker4@eivense", append="-A pj.main.celery -Q large")
+        node5 = Node(name="worker5@eivense", append="-A pj.main.celery -Q small")
+        self.nodelist.extend([node1,node2,node3,node4,node5])
+
         cluster = Cluster(self.nodelist)
         self.cluster=cluster
 

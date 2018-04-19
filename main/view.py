@@ -1,10 +1,11 @@
 import json
 from flask import jsonify,make_response
+from flask_uploads import UploadSet
 from . import app
 from .Celery.celery_tasks import rsync
 from .Connection.redis_conn import Redis
 from .Celery.Workers import Workers
-from .config import json_path
+from .config import mirror_path
 from ..main.Util import Util
 from datetime import datetime,timedelta
 
@@ -18,7 +19,7 @@ def flask_rsync():
     list=['elvish','inna','putty','vim']
     result=[]
     for i in list:
-        task=rsync.apply_async(args=[i])
+        task=rsync.apply_async(args=[i],queue='small')
         result.append(task.id)
     return jsonify(result)
 
@@ -35,7 +36,7 @@ def get_queue():
 
 @app.route('/task_status')
 def get_task():
-    json=Util.read_json(json_path)
+    json=Util.read_json(mirror_path)
     response = make_response(jsonify(json))
     response.headers['Access-Control-Allow-Origin'] = '*'
     response.headers['Access-Control-Allow-Methods'] = 'POST'
@@ -61,3 +62,7 @@ def createworker(worker_name):
     workers=Workers.getWorkers()
     workers.createNewWorker(worker_name)
     return "success"
+
+
+@app.route('/upload/<name>/<path>',methods=['POST','GET'])
+def file_upload(name,path):
