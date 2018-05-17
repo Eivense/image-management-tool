@@ -1,30 +1,30 @@
 {
   "mirrors":{
     "elvish":{
-      "schedule_time":"4-8-08",
+      "schedule_time":"4-7-15",
       "offical":false,
-      "sources":"http://mirrors.shu.edu.cn",
+      "upstream":"mirrors.shu.edu.cn",
       "queue":"small",
       "routing_key":"small"
     },
     "inna":{
-      "schedule_time":"4-8-08",
+      "schedule_time":"4-7-15",
       "offical":false,
-      "sources":"http://mirrors.shu.edu.cn",
+      "upstream":"mirrors.shu.edu.cn",
       "queue":"small",
       "routing_key":"small"
     },
     "putty":{
-      "schedule_time":"4-8-09",
+      "schedule_time":"4-7-16",
       "offical":false,
-      "sources":"http://mirrors.shu.edu.cn",
+      "upstream":"mirrors.shu.edu.cn",
       "queue":"small",
       "routing_key":"small"
     },
     "vim":{
-      "schedule_time":"4-8-09",
+      "schedule_time":"4-7-16",
       "offical":false,
-      "sources":"http://mirrors.shu.edu.cn",
+      "upstream":"mirrors.shu.edu.cn",
       "queue":"middle",
       "routing_key":"middle"
     }
