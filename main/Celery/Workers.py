@@ -1,9 +1,13 @@
 import threading
-from celery.apps.worker import Worker
 from celery.apps.multi import Cluster,Node
+from ..config import CELERY_WORKERS,CELERYD_LOG_FILE
+import signal
+
+
 class Workers:
     __instance_lock=threading.Lock()
     cluster=None
+    beat=None
     nodelist=[]
 
     @classmethod
@@ -11,29 +15,45 @@ class Workers:
         if not hasattr(Workers,"_instance"):
             with Workers.__instance_lock:
                 if not hasattr(Workers,"_instance"):
-                    Workers._instance=Workers(5)
+                    Workers._instance=Workers()
         return Workers._instance
 
-    def __init__(self,nums):
-
-        node1 = Node(name="worker1@eivense",append="-A pj.main.celery -Q small",extra_args="-B")
-        node2 = Node(name="worker2@eivense", append="-A pj.main.celery -Q middle")
-        node3 = Node(name="worker3@eivense", append="-A pj.main.celery -Q large -c 1")
-        node4 = Node(name="worker4@eivense", append="-A pj.main.celery -Q large")
-        node5 = Node(name="worker5@eivense", append="-A pj.main.celery -Q small")
-        self.nodelist.extend([node1,node2,node3,node4,node5])
-
+    def __init__(self):
+        extra="-B"
+        for worker in CELERY_WORKERS:
+            node = Node(name=worker.get("name"),
+                        append="-A pj.main.celery"
+                               + " -Q " + worker.get("queue")
+                               + " --concurrency " + worker.get("concurrency")
+                               + " -l info"
+                               + " -f " + CELERYD_LOG_FILE,
+                        extra_args=extra
+                        )
+            self.nodelist.append(node)
+            extra=""
         cluster = Cluster(self.nodelist)
         self.cluster=cluster
 
 
-    def createNewWorker(self,name):
-        node=Node(name=name)
+    def createNewWorker(self,name,queue):
+        node=Node(name=name,
+                  append="-A pj.main.celery"
+                         + " -Q " + queue
+                         + " -l info"
+                         + " -f " + CELERYD_LOG_FILE)
         self.nodelist.append(node)
         node.start()
 
     def start(self):
         self.cluster.start()
+
+    def removeNode(self,name):
+        for node in self.nodelist:
+            if node.name==name:
+                node.send(signal.SIGTERM)
+                self.nodelist.remove(node)
+
+
 
     def kill(self):
         self.cluster.kill()

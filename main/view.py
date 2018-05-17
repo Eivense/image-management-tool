@@ -1,13 +1,17 @@
-import json
-from flask import jsonify,make_response
-from flask_uploads import UploadSet
-from . import app
-from .Celery.celery_tasks import rsync
-from .Connection.redis_conn import Redis
+import os
+import time
+from flask import jsonify, request, send_from_directory
+from flask_uploads import UploadSet, SCRIPTS, configure_uploads, UploadNotAllowed
+
+from . import app, control, inspect
+from . import mirrors, tasks
 from .Celery.Workers import Workers
-from .config import mirror_path
-from ..main.Util import Util
-from datetime import datetime,timedelta
+from .Celery.celery_tasks import test
+from .config import UPLOADED_SHELL_DEST
+from .Model.Task import Task
+from .Model.Mirror import Mirror
+scripts=UploadSet("shell",SCRIPTS)
+configure_uploads(app,scripts)
 
 @app.route('/')
 def hello_world():
@@ -19,29 +23,86 @@ def flask_rsync():
     list=['elvish','inna','putty','vim']
     result=[]
     for i in list:
-        task=rsync.apply_async(args=[i],queue='small')
+        task=test.apply_async(args=[i,"mirrors.shu.edu.cn"],queue='small')
         result.append(task.id)
     return jsonify(result)
 
-@app.route('/redis')
-def get_queue():
-    conn=Redis.connect()
-    keys=Redis.get_all(conn)
-    queue=[]
-    for key in keys:
-        value=Redis.get(conn,key)
-        b=json.loads(bytes.decode(value))
-        queue.append(b)
-    return jsonify(queue)
+@app.route('/single/<name>/<upstream>')
+def single(name,upstream):
+    active=inspect.active()#正在执行的
+    reserved=inspect.reserved()#等待执行的
+
+    for workername in active:
+        worker=active[workername]
+        if (worker):
+            for task in worker:
+                args=eval(task["args"])
+                mirror=args[0]
+                if(name==mirror):
+                    terminate_task(task_id=task["id"],type="active")
+
+    for workername in reserved:
+        worker=reserved[workername]
+        if (worker):
+            for task in worker:
+                args = eval(task["args"])
+                mirror=args[0]
+                if(name==mirror):
+                    control.terminate(task_id=task["id"],type="reserved")
+
+    task=test.apply_async(args=[name,upstream],queue='temp')
+    return jsonify(task.id)
 
 @app.route('/task_status')
 def get_task():
-    json=Util.read_json(mirror_path)
-    response = make_response(jsonify(json))
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Methods'] = 'POST'
-    response.headers['Access-Control-Allow-Headers'] = 'x-requested-with,content-type'
-    return response
+    result=mirrors.find()
+    data={}
+    for mirror in result:
+        data[mirror["_id"]]=mirror
+    return jsonify(data)
+
+@app.route('/worker_info')
+def worker_info():
+    return jsonify(inspect.stats())
+
+@app.route('/active')
+def active():
+    return jsonify(inspect.active())
+
+@app.route('/reserved')
+def reserved():
+    return jsonify(inspect.reserved())
+
+@app.route('/terminate/<task_id>/<type>')
+def terminate_task(task_id,type):
+    control.terminate(task_id=task_id)
+    if(type=="active"):
+        task=tasks.find_one({"_id":task_id})
+        if(task):
+            data = Task(task_id=task_id, name=task["name"], status="REVOKED",start_time=task["start_time"],
+                        hostname=task["hostname"],message="Revoked", runtime="")
+            data.update()
+            mirror=mirrors.find_one({'task_id':task_id})
+            if(mirror):
+                data=Mirror(task_id=mirror["task_id"],name=mirror["_id"],status="REVOKED",start_time=mirror["start_time"],
+                            hostname=mirror["hostname"],message="Revoked")
+                data.update()
+                return jsonify(task_id)
+    elif(type=="reserved"):
+        pass
+        # list=inspect.reserved()
+        # for workername in list:
+        #     worker = list[workername]
+        #     if (worker):
+        #         for task in worker:
+        #             if (task["id"] == task_id):
+        #                 data = Task(task_id=task_id, name=eval(task["args"])[0], status="REVOKED",
+        #                             hostname=task["hostname"], message="Revoked", runtime="")
+        #                 data.save()
+    return jsonify(task_id)
+
+
+
 
 
 @app.route('/kill')
@@ -57,12 +118,46 @@ def stop_all():
     workers.stopAll()
     return "success"
 
-@app.route('/createworker/<worker_name>')
-def createworker(worker_name):
-    workers=Workers.getWorkers()
-    workers.createNewWorker(worker_name)
-    return "success"
+
+@app.route('/upload_shell',methods=['POST','GET','OPTIONS'])
+def file_upload():
+    if request.method=="POST" and 'file' in request.files:
+        try:
+            scripts.save(request.files['file'])
+            file_dir=UPLOADED_SHELL_DEST
+        except UploadNotAllowed:
+            return jsonify("uploadNotAllowed")
+        else:
+            for root,dirs,files in os.walk(file_dir):
+                return jsonify(list(files))
+    else:
+        return jsonify("failed")
 
 
-@app.route('/upload/<name>/<path>',methods=['POST','GET'])
-def file_upload(name,path):
+@app.route('/script_list')
+def script_list():
+    file_dir=UPLOADED_SHELL_DEST
+    for root,dirs,files in os.walk(file_dir):
+        return jsonify(files)
+
+@app.route('/download/<filename>')
+def download(filename):
+    if request.method=="GET":
+        if os.path.isfile(os.path.join(UPLOADED_SHELL_DEST,filename)):
+            return send_from_directory(UPLOADED_SHELL_DEST,filename,as_attachment=True)
+
+
+
+
+@app.route('/search/<data>/<pageSize>/<currentPage>')
+def search(data,pageSize,currentPage):
+    result=tasks.find({'name':data}).skip((int(currentPage)-1)*int(pageSize)).limit(int(pageSize))
+    totalsize=result.count()
+    list=[]
+    for task in result:
+        list.append(task)
+    data={
+        "totalsize":totalsize,
+        "result":list
+    }
+    return jsonify(data)

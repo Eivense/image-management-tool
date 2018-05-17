@@ -1,21 +1,45 @@
+import time
+import datetime
+from .. import tasks
+
 class Task:
-    def __init__(self,task_name,task_id,hostname,status=None,starttime=None):
-        self.task_name=task_name
+    def __init__(self,name,task_id,hostname,status,start_time=None,end_time=None,message=None,runtime=None):
+        self.name=name
         self.task_id=task_id
-        self.status=""
-        self.starttime=""
-        self.endtime=""
+        self.status=status
+        self.start_time=start_time or ""
+        self.end_time=end_time or ""
         self.hosthome=hostname
-        self.exitcode_message=""
+        self.message=message or ""
+        self.runtime=runtime or ""
 
     def convert_to_dict(self):
-        result={
-            "task_name":self.task_name,
-            "task_id":self.task_id,
+        data={
+            "_id":self.task_id,
+            "name":self.name,
             "status":self.status,
-            "start_time":self.starttime,
-            "end_time":self.endtime,
+            "start_time":self.start_time,
+            "end_time":self.end_time,
             "hostname":self.hosthome,
-            "message":self.exitcode_message
+            "message":self.message,
+            "runtime":self.runtime
         }
-        return result
+        return data
+
+
+    def save(self):
+        tasks.insert_one(self.convert_to_dict())
+
+    def update(self):
+        tasks.update_one({"_id":self.task_id},
+                           {"$set":{
+                                "_id":self.task_id,
+                                "name":self.name,
+                                "status":self.status,
+                                "start_time":self.start_time,
+                                "end_time":self.end_time,
+                                "hostname":self.hosthome,
+                                "message":self.message,
+                                "runtime":self.runtime
+                           }
+                           })

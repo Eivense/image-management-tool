@@ -9,13 +9,22 @@ def initSchedule(schedule_path,mirrors_path):
     for mirror in mirror_schedule:
         data=mirror_schedule[mirror]
         schedule_time=data["schedule_time"]
+        upstream=data["upstream"]
         time=schedule_time.split("-")
         CELERYBEAT_SCHEDULE[mirror] ={
             'task':'rsync',
             'schedule':crontab(day_of_week=time[0],hour=time[1],minute=time[2]),
-            'args':[mirror],
+            'args':[mirror,upstream],
             'options':{"queue":data["queue"],"routing_key":data["routing_key"]}
         }
-        MIRRORS[mirror]={}
+        MIRRORS[mirror]={
+            "task_id":"",
+            "start_time":"",
+            "hostname":"",
+            "status":"",
+            "last_succeed":"",
+            "end_time":"",
+            "message":""
+        }
     save_json_tofile(MIRRORS,mirrors_path)
     return CELERYBEAT_SCHEDULE

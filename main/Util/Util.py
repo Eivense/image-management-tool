@@ -18,9 +18,6 @@ def save_object(task,name,path):
         save_json_tofile(images,path)
 
 
-
-
-
 def read_json(path):
     with open(path,'r',encoding='utf-8') as json_file:
         fcntl.flock(json_file,fcntl.LOCK_EX)
@@ -52,5 +49,6 @@ def rsync_exitcode(code):
         24:"Partial transfer due to vanished source files",
         25:"The --max-delete limit stopped deletions",
         30:"Timeout in Data send / receive",
-        35:"Timeout waiting for daemon connection"
+        35:"Timeout waiting for daemon connection",
+        126:"No execution permissions"
     }.get(code)
