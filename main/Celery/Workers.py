@@ -3,13 +3,12 @@ from celery.apps.multi import Cluster,Node
 from ..config import CELERY_WORKERS,CELERYD_LOG_FILE
 import signal
 
-
 class Workers:
-    __instance_lock=threading.Lock()
     cluster=None
     beat=None
     nodelist=[]
 
+    __instance_lock = threading.Lock()
     @classmethod
     def getWorkers(cls):
         if not hasattr(Workers,"_instance"):
@@ -20,10 +19,16 @@ class Workers:
 
     def __init__(self):
         extra="-B"
+
         for worker in CELERY_WORKERS:
+            queue=""
+            if(len(worker.get("queue"))>1):
+                queue=",".join(worker.get("queue"))
+            else:
+                queue=worker.get("queue")[0]
             node = Node(name=worker.get("name"),
-                        append="-A pj.main.celery"
-                               + " -Q " + worker.get("queue")
+                        append="-A celery"
+                               + " -Q " + queue
                                + " --concurrency " + worker.get("concurrency")
                                + " -l info"
                                + " -f " + CELERYD_LOG_FILE,
@@ -60,6 +65,9 @@ class Workers:
 
     def stopAll(self):
         self.cluster.stop()
+
+    def restart(self):
+        self.cluster.restart(sig=15)
 
     def findworker(self,name):
         worker=self.cluster.find(name)

@@ -41,35 +41,21 @@ CELERYD_LOG_LEVEL="info"
 
 CELERYBEAT_SCHEDULE=initSchedule(schedule_path,mirror_path)
 
-normal=Exchange(name="normal",type="direct",durable="false",auto_delete="true")
-temp=Exchange(name="temp",type="direct",durable="false",auto_delete="true")
+normal=Exchange(name="normal",type="direct",durable="true",auto_delete="false")
+temp=Exchange(name="temp",type="fanout",durable="true",auto_delete="true")
 CELERY_QUEUES={
-    Queue("small",exchange=normal,routing_key="small",auto_delete="true",durable="false"),
-    Queue("middle",exchange=normal,routing_key="middle",auto_delete="true",durable="false"),
-    Queue("large",exchange=normal,routing_key="large",auto_delete="true",durable="false"),
-    Queue("temp",exchange=temp,routing_key="temp",auto_delete="true",durable="false")
+    Queue(name="small",exchange=normal,routing_key="small",auto_delete="false",durable="false",max_priority="8"),
+    Queue(name="middle",exchange=normal,routing_key="middle",auto_delete="false",durable="false",max_priority="9" ),
+    Queue(name="large",exchange=normal,routing_key="large",auto_delete="false",durable="false",max_priority="9"),
+    Queue(name="temp",exchange=temp,routing_key="temp",auto_delete="true",durable="false",max_priority="10")
 }
-hostname="eivense"
+HOSTNAME="eivense"
+
+
 CELERY_WORKERS=[
-    {
-        "name":"worker1@"+hostname,
-        "queue":"small",
-        "concurrency":"2"
-     },
-    {
-        "name":"worker2@"+hostname,
-        "queue":"small",
-        "concurrency":"2"
-     },
-    {
-        "name":"worker3@"+hostname,
-        "queue":"middle",
-        "concurrency":"2"
-    },
-    {
-        "name":"temp@"+hostname,
-        "queue":"temp",
-        "concurrency":"1"
-    }
+    {"name":"worker1@"+HOSTNAME,"queue":["small"], "concurrency":"2"},
+    {"name":"worker2@"+HOSTNAME,"queue":["small","middle"],"concurrency":"2"},
+    {"name":"worker3@"+HOSTNAME,"queue":["small","large"],"concurrency":"2"},
+    {"name":"temp@"+HOSTNAME,"queue":"temp","concurrency":"1"}
 ]
 

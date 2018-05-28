@@ -7,7 +7,7 @@ from ..Util import Util
 from .BaseTask import BaseTask
 from ..Model.Task import Task
 from ..Model.Mirror import Mirror
-@celery.task(name='rsync',bind=True,base=BaseTask)
+@celery.task(name='rsync',bind=True,base=BaseTask,timelimit=20)
 def rsync(self,name,upstream):
     task_id=self.request.id
     hostname=self.request.hostname

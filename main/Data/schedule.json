@@ -1,32 +1,32 @@
 {
-  "mirrors":{
+  "rsync":{
     "elvish":{
       "schedule_time":"4-7-15",
-      "offical":false,
       "upstream":"mirrors.shu.edu.cn",
-      "queue":"small",
-      "routing_key":"small"
+      "queue":"small"
     },
     "inna":{
       "schedule_time":"4-7-15",
-      "offical":false,
       "upstream":"mirrors.shu.edu.cn",
-      "queue":"small",
-      "routing_key":"small"
+      "queue":"small"
     },
     "putty":{
       "schedule_time":"4-7-16",
       "offical":false,
       "upstream":"mirrors.shu.edu.cn",
-      "queue":"small",
-      "routing_key":"small"
+      "queue":"small"
     },
     "vim":{
       "schedule_time":"4-7-16",
-      "offical":false,
       "upstream":"mirrors.shu.edu.cn",
-      "queue":"middle",
-      "routing_key":"middle"
+      "queue":"middle"
+    }
+  },
+  "wget":{
+    "mongodb":{
+      "schedule_time":"4-7-16",
+      "upstream":"mirrors.shu.edu.cn",
+      "queue":"middle"
     }
   }
 }
