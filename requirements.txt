@@ -21,7 +21,6 @@ Jinja2==2.10
 keyring==10.4.0
 keyrings.alt==2.2
 kombu==4.1.0
-language-selector==0.1
 MarkupSafe==1.0
 pycrypto==2.6.1
 pygobject==3.24.1
