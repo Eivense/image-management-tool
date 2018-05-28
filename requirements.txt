@@ -23,7 +23,6 @@ keyrings.alt==2.2
 kombu==4.1.0
 MarkupSafe==1.0
 pycrypto==2.6.1
-pygobject==3.24.1
 pymongo==3.6.1
 pyparsing==2.1.10
 python-apt==1.4.0b3
