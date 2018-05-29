@@ -26,7 +26,7 @@ UPLOADED_SHELL_DEST='/home/eivense/sync_script'
 
 mirror_path= '/usr/local/code/pj/main/Data/mirrors.json'
 
-schedule_path= '/usr/local/code/pj//main/Data/schedule.json'
+schedule_path= '/usr/local/code/pj/main/Data/schedule.json'
 
 rsync_path='/home/eivense/sync_script/rsync.sh'
 
